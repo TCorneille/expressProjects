@@ -1,0 +1,290 @@
+// const fs = require('fs')
+const Tour= require('./tourModel')
+// const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
+exports.aliasTop5 = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary';
+  next();
+};
+
+
+
+exports.getAll=async(req, res) => {
+    try{
+      // BUILD QUERY
+// 1) Filtering
+const queryObj = { ...req.query };
+const excludedFields = ['page', 'sort', 'limit', 'fields'];
+excludedFields.forEach(el => delete queryObj[el]);
+
+// 2) Advanced filtering
+let queryStr = JSON.stringify(queryObj);
+queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+console.log(JSON.parse(queryStr));
+
+let query = Tour.find(JSON.parse(queryStr));
+//sort
+if(req.query.sort){
+  query=query.sort(req.query.sort)
+}
+//field limits
+if (req.query.fields) {
+  const fields = req.query.fields.split(',').join(' ');
+  query = query.select(fields);
+} else {
+  query = query.select('-__v');
+}
+//  Pagination
+const page = req.query.page * 1 || 1;
+const limit = req.query.limit * 1 || 100;
+const skip = (page - 1) * limit;
+
+query = query.skip(skip).limit(limit);
+
+// EXECUTE QUERY
+const allTours = await query;
+    //   console.log(req.query)
+    // const allTours = await Tour.find(req.query);
+    //console.log(allTours)
+    res.status(200).json({
+        status: 'Yes',
+        // requestedAt:req.requestTime,
+        results: allTours.length,
+        data: {
+            allTours
+        }
+    })
+}catch(err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message
+    });
+  }
+
+}
+
+
+exports.getOne=async(req, res) => {
+    try{
+        const tour=await Tour.findById(req.params.id)
+        if (!tour) {
+            return res.status(404).json({
+              status: 'fail',
+              message: 'No tour found with that ID'
+            });
+          }
+        res.status(200).json({
+                    status: 'Yes',
+                    //results: tours.length,
+                    data: {
+                        tour
+                    }
+                })
+        
+
+    }catch(err) {
+        res.status(404).json({
+          status: 'fail',
+          message: err.message
+        });
+      }
+    };
+    
+    // console.log(req.params)
+    
+    // const id = req.params.id * 1;
+// const tour = tours.find(el => el.id === id);
+// if (id > tours.length) {
+//     return res.status(404).json({
+//       status: 'fail',
+//       message: 'Invalid ID'
+// });
+//   }
+  
+
+//     res.status(200).json({
+//         status: 'Yes',
+//         // results: tours.length,
+//         data: {
+//             tour
+// //         }
+//     })
+
+
+
+
+    // console.log(req.body);
+  
+//     const newId = tours[tours.length - 1].id + 1;
+//     const newTour = Object.assign({ id: newId }, req.body);
+  
+//     tours.push(newTour);
+  
+//   fs.writeFile(
+//     `${__dirname}/dev-data/data/tours-simple.json`,
+//     JSON.stringify(tours),
+//     err => {
+
+
+    exports.createOne = async (req, res) => {
+      try {
+        const newTour = await Tour.create(req.body);
+        res.status(201).json({
+          status: 'success',
+          data: {
+            tour: newTour
+          }
+        });
+      } catch (err) {
+        res.status(400).json({
+          status: 'fail',
+          message: err.message
+        });
+      }
+    };
+
+    
+//   );
+//   }
+  
+
+
+// app.post('/api/v1/tours', (req, res) => {
+//     console.log(req.body)
+//     res.send('done')
+
+// });
+exports.UpdateOne=async(req, res) => {
+     try {
+        const tour= await Tour.findByIdAndUpdate(req.params.id,req.body,{
+            new:true,
+            runValidators:true
+        })
+        res.status(200).json({
+            status: 'Yes',
+            // results: tours.length,
+            data: {
+                tour
+            }
+        })
+    }
+    catch (err) {
+        res.status(400).json({
+          status: 'fail',
+          message: err.message
+        });
+      }
+      
+    
+
+};
+
+exports.deleteOne=async(req, res) => {
+    try{
+         await Tour.findByIdAndDelete(req.params.id)
+        res.status(200).json({
+            status: 'Yes',
+            //results: tours.length,
+            data:null
+        })
+    }catch (err) {
+        res.status(400).json({
+          status: 'fail',
+          message: err.message
+        });
+      }
+      
+    
+
+};
+exports.getStats=async(req, res) => {
+  try{
+    const stat= await Tour.aggregate([
+      {
+        $match:{ratingsAverage:{$gte:4.5}}
+      },
+      
+        {
+          $group: {
+            _id: null,
+            avgRating: { $avg: '$ratingsAverage' },
+            avgPrice: { $avg: '$price' },
+            minPrice: { $min: '$price' },
+            maxPrice: { $max: '$price' }
+          }
+        }
+      
+    ])
+     
+    res.status(200).json({
+      status: 'Yes',
+      // results: tours.length,
+      data: {
+          stat
+      }
+  })  
+  }catch (err) {
+      res.status(400).json({
+        status: 'fail',
+        message: err.message
+      });
+    }
+    
+  
+
+};
+exports.getMonthly=async(req, res) => {
+  try{
+    const year=req.params.year*1;
+    const plan= await Tour.aggregate([
+      {
+        $unwind:'$startDates'
+      }, 
+      {
+    $match: 
+    {
+    startDates: 
+    {
+      $gte: new Date(`${year}-01-01`),
+      $lte: new Date(`${year}-12-31`)
+    }
+  },
+},
+{
+  $group:
+   {
+    _id:  { $month: '$startDates' },
+    numTourStarts: { $sum: 1 },
+    tour:{$push: '$name'}
+  }
+}
+      
+    ])
+     
+    res.status(200).json({
+      status: 'Yes',
+      // results: tours.length,
+      data: {
+          plan
+      }
+  })  
+  }catch (err) {
+      res.status(400).json({
+        status: 'fail',
+        message: err.message
+      });
+    }
+    
+  
+
+};
+// const checkBody = (req, res, next) => {
+//     if (!req.body.name || !req.body.price) {
+//       return res.status(400).json({
+//         status: 'fail',
+//         message: 'Missing name or price'
+//       });
+//     }
+  
+//     next();

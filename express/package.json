@@ -9,8 +9,10 @@
   "author": "Cor",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.9",
+    "validator": "^13.15.0"
   }
 }
