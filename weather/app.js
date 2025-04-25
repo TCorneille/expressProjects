@@ -1,129 +1,33 @@
-const express = require('express');
-const fs = require('fs')
-const app = express();
-const morgan=require('morgan');
+
+const mongoose = require('mongoose'); 
+ const dotenv=require('dotenv');
+
+ const app=require('./application')
+
 const port = 5000;
 
-app.use(morgan('dev'))
-app.use(express.json());
-app.use((req, res, next) => {
-    req.requestTime = new Date().toISOString();
-    console.log('Hello from the middleware 👋');
-    next();
+
+// const weather = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/weather.json`))
+
+dotenv.config({path:'./config.env'})
+const DB = process.env.DATABASE.replace(
+  '<PASSWORD>',
+  process.env.DATABASE_PASSWORD
+);
+
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true, // Optional in Mongoose 6+, but okay to leave
+  
+    useUnifiedTopology: true // Add this for good connection behavior
+  })
+  .then(con => {
+    // console.log(con.connections);
+    console.log('DB connection successful!');
+  })
+  .catch(err => {
+    console.error('Connection error:', err);
   });
-  
-const weather = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/weather.json`))
-
-
-const getAll=(req, res) => {
-    console.log(req.requestTime)
-    res.status(200).json({
-        status: 'Yes',
-        requestedAt:req.requestTime,
-        results: weather.length,
-        data: {
-            weather: weather
-        }
-    })
-
-}
-
-
-const getOne=(req, res) => {
-    console.log(req.params)
-    
-    const id = req.params.id * 1;
-const weather2 = weather.find(el => el.id === id);
-if (id > weather.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID'
-    });
-  }
-
-  
-
-    res.status(200).json({
-        status: 'Yes',
-        // results: tours.length,
-        data: {
-            weather
-        }
-    })
-
-};
-
-
-const createOne=(req, res) => {
-    // console.log(req.body);
-  
-    const newId = weather[weather.length - 1].id + 1;
-    const newW = Object.assign({ id: newId }, req.body);
-  
-    weather.push(newW);
-  
-  fs.writeFile(
-    `${__dirname}/dev-data/weather.json`,
-    JSON.stringify(weather),
-    err => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          weather: newW
-        }
-      });
-    }
-  );
-  }
-  
-
-
-app.post('/api/v1/weather', (req, res) => {
-    console.log(req.body)
-    res.send('done')
-
-});
-const UpdateOne=(req, res) => {
-    if (req.params.id *1> weather.length) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Invalid ID'
-        });
-      }
-      
-    res.status(200).json({
-        status: 'Yes',
-        results: weather.length,
-        data: {
-            weather: '<update weather>'
-        }
-    })
-
-};
-
-const deleteOne=(req, res) => {
-    if (req.params.id *1> weather.length) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Invalid ID'
-        });
-      }
-      
-    res.status(200).json({
-        status: 'Yes',
-        results: weather.length,
-        data:null
-    })
-
-};
-
-
-
-
-app.get('/api/v1/weather',getAll )
-app.get('/api/v1/weather/:id',getOne) 
-app.post('/api/v1/weather',createOne)
-app.patch('/api/v1/weather/:id',UpdateOne ) 
 // app.delete('/api/v1/tours/:id',deleteOne )
 
 
@@ -137,6 +41,7 @@ app.patch('/api/v1/weather/:id',UpdateOne )
 //   .get(getOne)
 //   .patch(UpdateOne)
 //   .delete(deleteOne);
+
 
 
 app.listen(port, () => {
