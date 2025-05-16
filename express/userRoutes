@@ -1,0 +1,41 @@
+const express = require('express');
+
+const Router = express.Router();
+const userController=require('./userController')
+const authController=require('./authController')
+
+
+
+// Router
+//   .route('/top-5-cheap')
+//   .get(tourController.aliasTop5, tourController.getAll);
+//   Router
+//   .route('/monthly/:year')
+//   .get(tourController.getMonthly);
+  
+// Router
+//   .route('/tour-stats')
+//   .get(tourController.getStats);
+ 
+Router.post('/signup',authController.signup);
+Router.post('/login',authController.login);
+  
+ 
+ Router
+  .route('/')
+  .get(userController.getAll)
+  .post(userController.createOne);
+
+Router
+  .route('/:id')
+  .get(userController.getOne)
+  .patch(userController.updateOne)
+  .delete(userController.deleteOne);
+  
+  // Router.param('id', (req, res, next, val) => {
+  //   console.log(`Tour id is: ${val}`);
+  //   next();
+  // });
+  
+
+  module.exports=Router
