@@ -25,7 +25,12 @@ Router
   .route('/:id')
   .get(tourController.getOne)
   .patch(tourController.UpdateOne)
-  .delete(tourController.deleteOne);
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteOne
+  );
+
   
   // Router.param('id', (req, res, next, val) => {
   //   console.log(`Tour id is: ${val}`);

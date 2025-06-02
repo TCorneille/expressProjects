@@ -3,36 +3,34 @@ const mongoose = require('mongoose');
 // const slugify = require('slugify');
 const validator = require('validator');
 const bcrypt=require('bcryptjs')
+const crypto = require('crypto');
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'A user must have a name'],
-      unique: true,
-      trim: true,
-      maxlength: [40, 'A user name must have less or equal than 40 characters'],
-      minlength: [10, 'A user name must have more or equal than 10 characters']
-    },
-    email: {
-        type : String,
-        required:[true,'A user must have an email'],
-        unique:true,
-        Lowercase:true,
-validate:[validator.isEmail,'Please provide a valid email' ], 
-},
-    password:{
-        type:String,
-        required:[true,'A user must provide a password'],
-        minLength:5,
-        select:false,
-    },
-
-    passwordConfirm: {
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'A user must have a name'],
+    unique: true,
+    trim: true,
+    maxlength: [40, 'A user name must have less or equal than 40 characters'],
+    minlength: [10, 'A user name must have more or equal than 10 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'A user must have an email'],
+    unique: true,
+    lowercase: true,
+    validate: [validator.isEmail, 'Please provide a valid email']
+  },
+  password: {
+    type: String,
+    required: [true, 'A user must provide a password'],
+    minlength: 5,
+    select: false
+  },
+  passwordConfirm: {
     type: String,
     required: [true, 'Please confirm your password'],
     validate: {
-      // This only works on CREATE and SAVE!!!
       validator: function(el) {
         return el === this.password;
       },
@@ -46,8 +44,18 @@ validate:[validator.isEmail,'Please provide a valid email' ],
     type: Boolean,
     default: true,
     select: false
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
   }
 });
+
+
+
+
+
 
 
 userSchema.pre('save', async function(next) {
@@ -76,6 +84,25 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   // False means NOT changed
   return false;
 };
+userSchema.methods.createPasswordResetToken = function() {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+    
+  console.log({ resetToken }, this.passwordResetToken);
+  console.log(Object.keys(User.schema.paths));
+
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
+
+
 
 
 const User = mongoose.model('User', userSchema);
