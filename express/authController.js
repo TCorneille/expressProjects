@@ -2,6 +2,7 @@ const User = require('./userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const sendEmail = require('./email');
+const crypto = require('crypto');
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -229,6 +230,8 @@ exports.resetPassword = async (req, res, next) => {
     });
   }
 };
+
+
 exports.updatePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword, newPasswordConfirm } = req.body;
