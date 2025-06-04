@@ -69,7 +69,21 @@ exports.updateMe = async (req, res, next) => {
     });
   }
 };
+exports.deleteMe = async (req, res, next) => {
+  try{
+  await User.findByIdAndUpdate(req.user.id, { active: false });
 
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+}catch (err) {
+    return res.status(500).json({
+      status: 'error',
+      message: err.message || 'Something went wrong',
+    });
+  }
+};
 
 
   exports.getOne = (req, res) => {
