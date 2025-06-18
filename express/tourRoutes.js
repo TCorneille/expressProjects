@@ -3,6 +3,10 @@ const express = require('express');
 const Router = express.Router();
 const tourController=require('./tourController')
 const authController=require('./authController')
+const reviewController=require('./reviewController')
+const reviewRouter=require('./reviewRoutes');
+
+ Router.use('/:tourId/reviews',reviewRouter);
 
 
 Router
@@ -36,6 +40,17 @@ Router
   //   console.log(`Tour id is: ${val}`);
   //   next();
   // });
+
+
+  
+  // Router
+  // .route('/:tourId/reviews')
+  //  .post(
+  //     authController.protect,                // ⬅️ This sets req.user
+  //     authController.restrictTo('user'),     // ⬅️ Now this can safely access req.user.role
+  //     // reviewController.setTourUserIds,
+  //     reviewController.createOne
+  //   );
   
 
   module.exports=Router

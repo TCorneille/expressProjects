@@ -6,6 +6,7 @@ const authController=require('./authController')
 
 
 
+
 // Router
 //   .route('/top-5-cheap')
 //   .get(tourController.aliasTop5, tourController.getAll);
@@ -48,6 +49,12 @@ Router
   //   console.log(`Tour id is: ${val}`);
   //   next();
   // });
+
+  // .get(userController.getOne)
+  // .patch(userController.updateOne)
+  // .delete(userController.deleteOne);
+
+
   
 
   module.exports=Router

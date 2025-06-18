@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 // const slugify = require('slugify');
 // const validator = require('validator');
+const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -76,7 +77,45 @@ const tourSchema = new mongoose.Schema(
     secretTour: {
       type: Boolean,
       default: false
-    }
+    },
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point']
+      },
+      coordinates: [Number],
+      address: String,
+      description: String
+    },
+     locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number
+      }
+    ],
+     guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
+    ],
+  //   reviews: [
+  //   {
+  //     type: mongoose.Schema.ObjectId,
+  //     ref: 'Review'
+  //   }
+  // ]
+    
+
   },
   {
     toJSON: { virtuals: true },
@@ -88,6 +127,30 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
+});
+
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+ foreignField: 'tour',
+ localField: '_id'
+});
+
+
+
+tourSchema.pre('save', async function (next) {
+  if (!this.guides || !Array.isArray(this.guides)) return next();
+
+  const guidesPromises = this.guides.map(id => User.findById(id));
+  this.guides = await Promise.all(guidesPromises);
+  next();
+});
+
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
+  next();
 });
 
 // // DOCUMENT MIDDLEWARE: runs before .save() and .create()

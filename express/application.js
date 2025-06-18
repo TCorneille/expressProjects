@@ -12,6 +12,8 @@ const hpp = require('hpp');
 
 const tourRouter=require('./tourRoutes');
 const userRouter=require('./userRoutes');
+const reviewRouter=require('./reviewRoutes');
+
 
 app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
@@ -90,7 +92,7 @@ app.use((req, res, next) => {
 
   app.use('/api/v1/tours', tourRouter);
    app.use('/api/v1/users', userRouter);
-  
+  app.use('/api/v1/reviews', reviewRouter);
  
 
 

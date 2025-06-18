@@ -91,6 +91,8 @@ catch(err) {
 exports.getOne=async(req, res) => {
     try{
         const tour=await Tour.findById(req.params.id)
+         .populate('guides')
+         .populate('reviews');
         if (!tour) {
             return res.status(404).json({
               status: 'fail',
