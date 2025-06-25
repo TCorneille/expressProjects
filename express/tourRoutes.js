@@ -22,13 +22,17 @@ Router
   
   Router
   .route('/')
-  .get(authController.protect,tourController.getAll)
-  .post(tourController.createOne);
+  .get(tourController.getAll)
+  .post(authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createOne);
 
 Router
   .route('/:id')
   .get(tourController.getOne)
-  .patch(tourController.UpdateOne)
+  .patch(authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.UpdateOne)
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),

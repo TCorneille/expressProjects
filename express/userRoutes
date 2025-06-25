@@ -24,15 +24,17 @@ Router.post('/login',authController.login);
 Router.post('/forgotPassword', authController.forgotPassword);
 Router.patch('/resetPassword/:token', authController.resetPassword);
 
+
+Router.use(authController.protect);
+
 Router.patch(
-  '/updateMyPassword',
-  authController.protect,
-  authController.updatePassword
-);
+  '/updateMyPassword',authController.updatePassword);
 
 Router.patch('/updateMe', authController.protect, userController.updateMe);
 Router.delete('/deleteMe', authController.protect, userController.deleteMe);
   
+
+Router.use(authController.restrictTo('admin'));
  
  Router
   .route('/')
@@ -48,7 +50,7 @@ Router
   // Router.param('id', (req, res, next, val) => {
   //   console.log(`Tour id is: ${val}`);
   //   next();
-  // });
+  // 
 
   // .get(userController.getOne)
   // .patch(userController.updateOne)
@@ -57,4 +59,4 @@ Router
 
   
 
-  module.exports=Router
+  module.exports=Router;

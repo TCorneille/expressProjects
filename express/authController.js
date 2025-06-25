@@ -137,6 +137,8 @@ exports.protect = async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     console.log('req.user.role:', req.user.role); 
+        console.log('req.user.email:', req.user.email); 
+
     console.log('Allowed Roles:', roles);
     
     // roles ['admin', 'lead-guide']. role='user'
