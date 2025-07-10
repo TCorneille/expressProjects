@@ -8,11 +8,17 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const path = require('path');
 
 
 const tourRouter=require('./tourRoutes');
 const userRouter=require('./userRoutes');
 const reviewRouter=require('./reviewRoutes');
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use(helmet());
@@ -37,7 +43,7 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-app.use(express.static(`${__dirname}/public`));
+
 
 
 app.use(mongoSanitize());
@@ -88,6 +94,24 @@ app.use((req, res, next) => {
 //   .patch(UpdateOne)
 //   .delete(deleteOne);
 
+app.get('/', (req, res) => {
+  res.status(200).render('base', {
+    tour: 'The Forest Hiker',
+    user: 'Jonas'
+  });
+});
+
+app.get('/overview', (req, res) => {
+  res.status(200).render('overview', {
+    title: 'All Tours'
+  });
+});
+
+app.get('/tour', (req, res) => {
+  res.status(200).render('tour', {
+    title: 'The Forest Hiker Tour'
+  });
+});
 
 
   app.use('/api/v1/tours', tourRouter);
